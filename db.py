@@ -82,6 +82,7 @@ def create_schema(client):
         client.command("CREATE PROPERTY Patient.patient_status INTEGER")
         client.command("CREATE PROPERTY Patient.contact_list EMBEDDEDLIST STRING")
         client.command("CREATE PROPERTY Patient.event_list EMBEDDEDLIST STRING")
+        client.command("CREATE PROPERTY Patient.batch_id INTEGER")  # Add this line
 
 
 
@@ -102,9 +103,9 @@ def insert_patient_data(client, payload):
                 patient_zipcode = {data['patient_zipcode']},
                 patient_status = {data['patient_status']},
                 contact_list = {json.dumps(data['contact_list'])},
-                event_list = {json.dumps(data['event_list'])}
+                event_list = {json.dumps(data['event_list'])},
+                batch_id = {data['batch_id']}
             """)
     except Exception as e:
         print(f"Error while inserting patient data: {e}")
-
 

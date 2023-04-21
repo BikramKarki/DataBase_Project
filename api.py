@@ -2,6 +2,8 @@ import db
 import config
 import pyorient
 import pymongo
+import json
+
 def get_team_info():
     team_info = {
         "team_name": "AABI",
@@ -54,11 +56,56 @@ def reset_database():
         client_mongodb.close()
 
 
-def get_zip_alert_list(client):
-   pass
+def get_zip_alert_list():
+    orientdb_client = db.connect_orientdb()
 
-def get_state_alert_status(client):
-    pass
+    # Query to get the latest batch_id
+    latest_batch_id = orientdb_client.query("SELECT max(batch_id) as max_batch_id FROM Patient")[0].oRecordData['max_batch_id']
+
+    # Check if there are at least 2 batches to compare
+    if latest_batch_id < 1:
+        return jsonify(ziplist=[])
+
+    # Get the patient count per zipcode for the last two batches
+    patient_count_last_two_batches = orientdb_client.query(f"""
+        SELECT patient_zipcode, batch_id, count(*) as patient_count
+        FROM Patient
+        WHERE batch_id >= {latest_batch_id - 1}
+        GROUP BY patient_zipcode, batch_id
+    """)
+
+    # Calculate the patient count growth between the last two batches
+    growth = {}
+    for entry in patient_count_last_two_batches:
+        zipcode = entry.oRecordData['patient_zipcode']
+        batch_id = entry.oRecordData['batch_id']
+        count = entry.oRecordData['patient_count']
+
+        if zipcode not in growth:
+            growth[zipcode] = {'previous': 0, 'current': 0}
+
+        if batch_id == latest_batch_id:
+            growth[zipcode]['current'] = count
+        else:
+            growth[zipcode]['previous'] = count
+
+    # Generate the list of zipcodes in alert status
+    ziplist = [zipcode for zipcode, counts in growth.items() if counts['current'] >= 2 * counts['previous']]
+
+    return ziplist
+
+def get_alert_status():
+    # Get the list of zipcodes in alert status
+    ziplist = get_zip_alert_list()
+
+    # Check if there are at least five zipcodes in alert status
+    state_status = 1 if len(ziplist) >= 5 else 0
+
+    return state_status
+
+
+
+
 def get_confirmed_contacts(client, mrn):
     result = client.query(f"SELECT contact_list FROM Patient WHERE patient_mrn = '{mrn}'")
     if result:
@@ -80,97 +127,76 @@ def get_possible_contacts(client, mrn):
         return []
 
 
-def get_patient_status(client, hospital_id):
-    query = f"SELECT patient_status, COUNT(*) as count FROM HospitalPatient WHERE hospital_id = {hospital_id} GROUP BY patient_status"
-    results = client.query(query)
+def get_patient_status(mongo_client, hospital_id):
+    hospital_data_collection = mongo_client[config.MONGODB_DB_NAME]["HospitalData"]
+    vax_data_collection = mongo_client[config.MONGODB_DB_NAME]["VaxData"]
+    print(hospital_id)
+    pipeline = [
+    {"$match": {"hospital_id": hospital_id}},
+    {"$group": {
+        "_id": "$patient_status",
+        "count": {"$sum": 1},
+        "patients": {"$push": "$patient_mrn"}
+    }},
+    {"$project": {
+        "patient_status": "$_id",
+        "count": 1,
+        "patients": 1,
+        "_id": 0
+    }}
+    ]
 
-    patient_status = {
-        "in-patient_count": 0,
-        "in-patient_vax": 0,
-        "icu-patient_count": 0,
-        "icu_patient_vax": 0,
-        "patient_vent_count": 0,
-        "patient_vent_vax": 0
-    }
 
-    for result in results:
-        status = result.patient_status
-        count = result.count
+    hospital_summary = list(hospital_data_collection.aggregate(pipeline))
+    summary = {1: {"count": 0, "vax": 0}, 2: {"count": 0, "vax": 0}, 3: {"count": 0, "vax": 0}}
+    print(hospital_summary)
+    for item in hospital_summary:
+        # print(item)
+        status = item["patient_status"]
+        count = item["count"]
+        patients = item["patients"]
 
-        if status == 1:
-            patient_status["in-patient_count"] = count
-        elif status == 2:
-            patient_status["icu-patient_count"] = count
-        elif status == 3:
-            patient_status["patient_vent_count"] = count
+        vax_count = vax_data_collection.count_documents({"patient_mrn": {"$in": patients}})
+        vax_rate = vax_count / count if count > 0 else 0
 
-    # Calculate the percentages of vaccinated patients for each patient category
-    # You might need to adjust this query based on your data schema
-    query = f"""
-    SELECT patient_status, COUNT(*) as vax_count
-    FROM HospitalPatient
-    WHERE hospital_id = {hospital_id} AND patient_mrn IN (SELECT patient_mrn FROM Vaccination)
-    GROUP BY patient_status
-    """
-    results = client.query(query)
+        summary[status]["count"] = count
+        summary[status]["vax"] = vax_rate
 
-    for result in results:
-        status = result.patient_status
-        count = result.vax_count
+    return summary
 
-        if status == 1:
-            patient_status["in-patient_vax"] = count / patient_status["in-patient_count"]
-        elif status == 2:
-            patient_status["icu_patient_vax"] = count / patient_status["icu-patient_count"]
-        elif status == 3:
-            patient_status["patient_vent_vax"] = count / patient_status["patient_vent_count"]
+def get_all_patient_status(mongo_client):
+    hospital_data_collection = mongo_client[config.MONGODB_DB_NAME]["HospitalData"]
+    vax_data_collection = mongo_client[config.MONGODB_DB_NAME]["VaxData"]
+    
+    pipeline = [
+        {
+            "$group": {
+                "_id": "$patient_status",
+                "count": {"$sum": 1},
+                "patients": {"$push": "$patient_mrn"}
+            }
+        }
+    ]
+    summary = hospital_data_collection.aggregate(pipeline)
 
-    return patient_status
+    result = {1: {"count": 0, "vax": 0}, 2: {"count": 0, "vax": 0}, 3: {"count": 0, "vax": 0}}
 
-def get_all_patient_status(client):
-    query = "SELECT patient_status, COUNT(*) as count FROM HospitalPatient GROUP BY patient_status"
-    results = client.query(query)
+    for item in summary:
+        status = item["_id"]
+        count = item["count"]
+        patients = item["patients"]
 
-    patient_status = {
-        "in-patient_count": 0,
-        "in-patient_vax": 0,
-        "icu-patient_count": 0,
-        "icu_patient_vax": 0,
-        "patient_vent_count": 0,
-        "patient_vent_vax": 0
-    }
+        vax_count = vax_data_collection.count_documents({"patient_mrn": {"$in": patients}})
+        vax_rate = round(vax_count / count, 2) if count > 0 else 0
 
-    for result in results:
-        status = result.patient_status
-        count = result.count
+        result[status]["count"] = count
+        result[status]["vax"] = vax_rate
 
-        if status == 1:
-            patient_status["in-patient_count"] = count
-        elif status == 2:
-            patient_status["icu-patient_count"] = count
-        elif status == 3:
-            patient_status["patient_vent_count"] = count
+    return result
 
-    # Calculate the percentages of vaccinated patients for each patient category
-    # You might need to adjust this query based on your data schema
-    query = """
-    SELECT patient_status, COUNT(*) as vax_count
-    FROM HospitalPatient
-    WHERE patient_mrn IN (SELECT patient_mrn FROM Vaccination)
-    GROUP BY patient_status
-    """
-    results = client.query(query)
 
-    for result in results:
-        status = result.patient_status
-        count = result.vax_count
 
-        if status == 1:
-            patient_status["in-patient_vax"] = count / patient_status["in-patient_count"]
-        elif status == 2:
-            patient_status["icu_patient_vax"] = count / patient_status["icu-patient_count"]
-        elif status == 3:
-            patient_status["patient_vent_vax"] = count / patient_status["patient_vent_count"]
 
-    return patient_status
+
+
 

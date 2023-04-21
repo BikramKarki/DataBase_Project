@@ -5,6 +5,7 @@ import consumer
 import api
 app = Flask(__name__)
 orientdb_client = connect_orientdb()
+mongo_db = connect_mongodb()
 # Management Functions
 @app.route('/api/getteam', methods=['GET'])
 def get_team():
@@ -17,15 +18,14 @@ def reset():
 
 @app.route('/api/zipalertlist', methods=['GET'])
 def zip_alert_list():
-    # Implement function: get_zip_alert_list(client)
-    ziplist = api.get_zip_alert_list(client)
+    ziplist = api.get_zip_alert_list()
     return jsonify({"ziplist": ziplist})
 
 @app.route('/api/alertlist', methods=['GET'])
 def alert_list():
-    # Implement function: get_state_alert_status(client)
-    state_status = api.get_state_alert_status(client)
-    return jsonify({"state_status": state_status})
+    state_status = api.get_alert_status()
+    return jsonify(state_status=state_status)
+
 
 @app.route('/api/getconfirmedcontacts/<mrn>', methods=['GET'])
 def get_confirmed_contacts_route(mrn):
@@ -41,20 +41,31 @@ def get_possible_contacts_route(mrn):
 
 @app.route('/api/getpatientstatus/<hospital_id>', methods=['GET'])
 def get_patient_status_route(hospital_id):
-    # Implement function: get_patient_status(client, hospital_id)
-    patient_status = get_patient_status(client, hospital_id)
-    return jsonify(patient_status)
+    patient_status = api.get_patient_status(mongo_db, hospital_id)
+    return jsonify({
+        "in-patient_count": patient_status[1]["count"],
+        "in-patient_vax": patient_status[1]["vax"],
+        "icu-patient_count": patient_status[2]["count"],
+        "icu_patient_vax": patient_status[2]["vax"],
+        "patient_vent_count": patient_status[3]["count"],
+        "patient_vent_vax": patient_status[3]["vax"],
+    })
 
-@app.route('/api/getpatientstatus', methods=['GET'])
+@app.route('/api/getpatientstatus/', methods=['GET'])
 def get_all_patient_status_route():
-    # Implement function: get_all_patient_status(client)
-    patient_status = get_all_patient_status(client)
-    return jsonify(patient_status)
+    patient_status = api.get_all_patient_status(mongo_db)
+    return jsonify({
+        "in-patient_count": patient_status[1]["count"],
+        "in-patient_vax": patient_status[1]["vax"],
+        "icu-patient_count": patient_status[2]["count"],
+        "icu_patient_vax": patient_status[2]["vax"],
+        "patient_vent_count": patient_status[3]["count"],
+        "patient_vent_vax": patient_status[3]["vax"],
+    })
 
 if __name__ == "__main__":
     # orientdb_client = connect_orientdb()
     create_database(orientdb_client)
-    mongo_db = connect_mongodb()
     hospital_data_collection, vax_data_collection = create_collections(mongo_db) 
     app.run(host="0.0.0.0", port=8000)    
     orientdb_client.db_close()

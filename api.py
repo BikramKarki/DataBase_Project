@@ -55,7 +55,6 @@ def reset_database():
         client_orientdb.close()
         client_mongodb.close()
 
-
 def get_zip_alert_list():
     orientdb_client = db.connect_orientdb()
 
@@ -70,29 +69,29 @@ def get_zip_alert_list():
     patient_count_last_two_batches = orientdb_client.query(f"""
         SELECT patient_zipcode, batch_id, count(*) as patient_count
         FROM Patient
-        WHERE batch_id >= {latest_batch_id - 1}
+        WHERE batch_id >= {latest_batch_id - 1} AND patient_status = 1
         GROUP BY patient_zipcode, batch_id
     """)
 
-    # Calculate the patient count growth between the last two batches
-    growth = {}
+    count_new_batch = 0
+    count_old_batch = 0
+    new_batch_zipcodes = set()
     for entry in patient_count_last_two_batches:
-        zipcode = entry.oRecordData['patient_zipcode']
+        # zipcode = entry.oRecordData['patient_zipcode']
         batch_id = entry.oRecordData['batch_id']
         count = entry.oRecordData['patient_count']
-
-        if zipcode not in growth:
-            growth[zipcode] = {'previous': 0, 'current': 0}
-
+        zipcode = entry.oRecordData['patient_zipcode']
         if batch_id == latest_batch_id:
-            growth[zipcode]['current'] = count
+            new_batch_zipcodes.add(zipcode)
+            count_new_batch += 1
         else:
-            growth[zipcode]['previous'] = count
+            count_old_batch += 1
+    return list(new_batch_zipcodes)
+    # if count_old_batch * 2 <= count_new_batch:
+    #     return list(new_batch_zipcodes)
+    # else:
+    #     return []
 
-    # Generate the list of zipcodes in alert status
-    ziplist = [zipcode for zipcode, counts in growth.items() if counts['current'] >= 2 * counts['previous']]
-
-    return ziplist
 
 def get_alert_status():
     # Get the list of zipcodes in alert status
@@ -107,11 +106,24 @@ def get_alert_status():
 
 
 def get_confirmed_contacts(client, mrn):
+    # Get the contact list for the patient with the given MRN
     result = client.query(f"SELECT contact_list FROM Patient WHERE patient_mrn = '{mrn}'")
     if result:
-        return result[0].contact_list
+        contact_list = result[0].contact_list
     else:
         return []
+
+    # Get the MRNs of the patients where the given patient is in their contact list
+    other_patients_with_given_mrn = client.query(f"SELECT patient_mrn FROM Patient WHERE '{mrn}' IN contact_list")
+
+    # Add the MRNs of these patients to the contact_list
+    for patient in other_patients_with_given_mrn:
+        other_patient_mrn = patient.patient_mrn
+        if other_patient_mrn not in contact_list:
+            contact_list.append(other_patient_mrn)
+
+    return contact_list
+
 
 
 def get_possible_contacts(client, mrn):

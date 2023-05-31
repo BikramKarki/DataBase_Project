@@ -1,8 +1,8 @@
 from flask import Flask, jsonify, request
 from db import (connect_orientdb, create_database, insert_patient_data,
                 connect_mongodb, create_collections)
-import consumer
 import api
+
 app = Flask(__name__)
 orientdb_client = connect_orientdb()
 mongo_db = connect_mongodb()
@@ -25,7 +25,6 @@ def zip_alert_list():
 def alert_list():
     state_status = api.get_alert_status()
     return jsonify(state_status=state_status)
-
 
 @app.route('/api/getconfirmedcontacts/<mrn>', methods=['GET'])
 def get_confirmed_contacts_route(mrn):
@@ -51,7 +50,7 @@ def get_patient_status_route(hospital_id):
         "patient_vent_vax": patient_status[3]["vax"],
     })
 
-@app.route('/api/getpatientstatus/', methods=['GET'])
+@app.route('/api/getpatientstatus', methods=['GET'])
 def get_all_patient_status_route():
     patient_status = api.get_all_patient_status(mongo_db)
     return jsonify({
@@ -67,5 +66,5 @@ if __name__ == "__main__":
     # orientdb_client = connect_orientdb()
     create_database(orientdb_client)
     hospital_data_collection, vax_data_collection = create_collections(mongo_db) 
-    app.run(host="0.0.0.0", port=8000)    
+    app.run(host="0.0.0.0", port=9999)    
     orientdb_client.db_close()

@@ -1,0 +1,89 @@
+database exist
+Creating schema...
+ * Serving Flask app 'app'
+ * Debug mode: off
+Address already in use
+Port 9999 is in use by another program. Either identify and stop that program, or start the server with a different port.
+database exist
+Creating schema...
+ * Serving Flask app 'app'
+ * Debug mode: off
+Address already in use
+Port 9999 is in use by another program. Either identify and stop that program, or start the server with a different port.
+database exist
+Creating schema...
+ * Serving Flask app 'app'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:9999
+ * Running on http://172.31.147.253:9999
+Press CTRL+C to quit
+10.113.33.179 - - [21/Apr/2023 18:27:49] "GET /api/getteam HTTP/1.1" 200 -
+ [*] Waiting for logs. To exit press CTRL+C
+Traceback (most recent call last):
+  File "/home/bka263/db_AABI_final/subscriber.py", line 83, in <module>
+    channel.start_consuming()
+  File "/home/bka263/.local/lib/python3.8/site-packages/pika/adapters/blocking_connection.py", line 1883, in start_consuming
+    self._process_data_events(time_limit=None)
+  File "/home/bka263/.local/lib/python3.8/site-packages/pika/adapters/blocking_connection.py", line 2044, in _process_data_events
+    self.connection.process_data_events(time_limit=time_limit)
+  File "/home/bka263/.local/lib/python3.8/site-packages/pika/adapters/blocking_connection.py", line 842, in process_data_events
+    self._flush_output(common_terminator)
+  File "/home/bka263/.local/lib/python3.8/site-packages/pika/adapters/blocking_connection.py", line 514, in _flush_output
+    self._impl.ioloop.poll()
+  File "/home/bka263/.local/lib/python3.8/site-packages/pika/adapters/select_connection.py", line 579, in poll
+    self._poller.poll()
+  File "/home/bka263/.local/lib/python3.8/site-packages/pika/adapters/select_connection.py", line 1184, in poll
+    events = self._poll.poll(self._get_max_wait())
+KeyboardInterrupt
+10.113.33.179 - - [21/Apr/2023 18:31:44] "GET /api/getteam HTTP/1.1" 200 -
+10.113.33.179 - - [21/Apr/2023 18:31:46] "GET /api/getteam HTTP/1.1" 200 -
+10.113.32.40 - - [21/Apr/2023 19:15:08] "GET /api/zipalertlist HTTP/1.1" 200 -
+10.113.32.40 - - [21/Apr/2023 19:15:19] "GET /api/zipalertlist HTTP/1.1" 200 -
+10.113.32.40 - - [21/Apr/2023 20:13:44] "GET /api/zipalertlist HTTP/1.1" 200 -
+10.113.32.40 - - [21/Apr/2023 20:13:47] "GET /api/zipalertlist HTTP/1.1" 200 -
+10.113.32.40 - - [21/Apr/2023 20:14:00] "GET /api/getpatientstatus HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 09:40:23] "GET /api/getteam HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 09:40:23] "GET /api/reset HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 09:41:05] "GET /api/zipalertlist HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 09:41:05] "GET /api/alertlist HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 09:41:45] "GET /api/getconfirmedcontacts/p1 HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 09:41:45] "GET /api/getpossiblecontacts/p1 HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 09:41:45] "GET /api/getpatientstatus/1 HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 09:41:45] "GET /api/getpatientstatus HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 10:58:08] "GET /api/getteam HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 10:58:08] "GET /api/reset HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 10:58:49] "GET /api/zipalertlist HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 10:58:49] "GET /api/alertlist HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 10:59:29] "GET /api/getconfirmedcontacts/p1 HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 10:59:29] "GET /api/getpossiblecontacts/p1 HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 10:59:29] "GET /api/getpatientstatus/1 HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 10:59:29] "GET /api/getpatientstatus HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 12:24:09] "GET /api/getteam HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 12:24:09] "GET /api/reset HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 12:24:50] "GET /api/zipalertlist HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 12:24:50] "GET /api/alertlist HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 12:25:30] "GET /api/getconfirmedcontacts/p1 HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 12:25:30] "GET /api/getpossiblecontacts/p1 HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 12:25:30] "GET /api/getpatientstatus/1 HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 12:25:30] "GET /api/getpatientstatus HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 12:53:53] "GET /api/getteam HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 12:53:54] "GET /api/reset HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 12:54:35] "GET /api/zipalertlist HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 12:54:35] "GET /api/alertlist HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 12:55:15] "GET /api/getconfirmedcontacts/p1 HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 12:55:15] "GET /api/getpossiblecontacts/p1 HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 12:55:15] "GET /api/getpatientstatus/1 HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 12:55:15] "GET /api/getpatientstatus HTTP/1.1" 200 -
+10.113.33.179 - - [22/Apr/2023 12:58:46] "GET /api/zipalertlist HTTP/1.1" 200 -
+10.113.33.179 - - [22/Apr/2023 12:58:47] "GET /favicon.ico HTTP/1.1" 404 -
+10.112.48.135 - - [22/Apr/2023 13:18:35] "GET /api/getteam HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 13:18:35] "GET /api/reset HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 13:19:16] "GET /api/zipalertlist HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 13:19:16] "GET /api/alertlist HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 13:19:56] "GET /api/getconfirmedcontacts/p1 HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 13:19:56] "GET /api/getpossiblecontacts/p1 HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 13:19:56] "GET /api/getpatientstatus/1 HTTP/1.1" 200 -
+10.112.48.135 - - [22/Apr/2023 13:19:56] "GET /api/getpatientstatus HTTP/1.1" 200 -
+10.113.33.179 - - [22/Apr/2023 14:50:45] "GET /api/zipalertlist HTTP/1.1" 200 -
